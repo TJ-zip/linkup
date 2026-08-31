@@ -1,4 +1,5 @@
 # Scripts to run and report. One per line. Must already exist in package.json.
+# Re-run: verify patched Next.js resolves and the build stays green.
 lint
 typecheck
 build
