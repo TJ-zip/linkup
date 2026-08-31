@@ -17,7 +17,7 @@ local mock dataset.
 
 ## Technology stack
 
-Next.js 14.2.15, React 18.3.1, TypeScript (strict), Tailwind CSS 3, ESLint
+Next.js 14.2.35, React 18.3.1, TypeScript (strict), Tailwind CSS 3, ESLint
 (`next/core-web-vitals`). Deployed on Vercel with framework defaults.
 
 ## Working features
@@ -41,22 +41,37 @@ Next.js 14.2.15, React 18.3.1, TypeScript (strict), Tailwind CSS 3, ESLint
 
 ## Current task
 
-Initial MVP on `feature/linkup-mvp`, awaiting CI verification of lint, typecheck and
-build, then Vercel import.
+Initial MVP on `feature/linkup-mvp`, open as pull request #1. CI is green. Remaining
+work is the Vercel import and preview review, then merge.
+
+## Verified CI runs
+
+- Run `33410105528`, commit `f45b8af`: install, lint, typecheck, build all exit 0
+  (Next.js 14.2.15).
+- Run `33410394629`, commit `625a19e`: all exit 0 after the bump to Next.js 14.2.35 and
+  lockfile regeneration.
+- Run `33410609060`, commit `3588a60`: install took the `npm ci` path with exit 0,
+  confirming the committed lockfile is valid; lint, typecheck and build exit 0; 12
+  routes generated.
+
+Steps skipped in every run: `test`, because no `test` script is declared.
 
 ## Pending tasks
 
-- Confirm a green GitHub Actions run and that a generated lockfile lets a later run take
-  the `npm ci` path.
 - Import the repository into Vercel and verify a preview deployment.
 - Optional next iteration: persistence behind a real backend, real college verification
   by email, simulated replies in chat, and a real billing provider for Premium.
+- Optional: clear the five remaining high-severity advisories in the
+  `eslint` / `glob` / `inflight` development dependency chain, which needs a breaking
+  ESLint 9 upgrade.
 
 ## Known issues
 
 - Chat is one-sided; there is no server to deliver replies.
 - Verification accepts any six-digit code after the domain check.
 - State is per-browser, so a profile does not follow the user across devices.
+- Browser interaction and visual design have not been verified at runtime; only the
+  production build has been verified.
 
 ## Required environment variables
 
@@ -65,7 +80,7 @@ None.
 ## Deployment information
 
 Vercel, Next.js preset. Build command `next build`. No output directory override, no
-environment variables, no external services.
+environment variables, no external services. No deployment has been verified yet.
 
 ## Important architectural decisions
 
@@ -83,5 +98,6 @@ environment variables, no external services.
 
 ## Last completed change
 
-Added My LinkUps, messaging, community, own and student profile pages, the LinkUp
-Premium page and the premium "Who Matches With Me?" list, plus README and this file.
+Bumped `next` and `eslint-config-next` to `^14.2.35` to clear the critical Next.js
+advisory, regenerated the lockfile through CI, and confirmed a green run on the
+`npm ci` path.
