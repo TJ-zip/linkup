@@ -1,5 +1,5 @@
 # Scripts to run and report. One per line. Must already exist in package.json.
-# Re-run: verify patched Next.js resolves and the build stays green.
+# Confirming the regenerated lockfile is honoured by npm ci.
 lint
 typecheck
 build
