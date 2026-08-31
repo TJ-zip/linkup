@@ -1,0 +1,5 @@
+# One npm script name per line. Only scripts already declared in package.json run.
+# Anything else is rejected. Edit + push this file to trigger the CI report.
+lint
+typecheck
+build
