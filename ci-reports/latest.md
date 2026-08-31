@@ -1,24 +1,24 @@
 # CI Report
 
 - Branch: `feature/linkup-mvp`
-- Commit: `625a19ebccfa9c0d16a330567457ad00b7fc6b70`
-- Run: [`33410394629`](https://github.com/TJ-zip/linkup/actions/runs/33410394629)
-- Generated: 2026-08-31 15:47:01 UTC
+- Commit: `3588a60841108bce284c5e6addebd027869e52d0`
+- Run: [`33410609060`](https://github.com/TJ-zip/linkup/actions/runs/33410609060)
+- Generated: 2026-08-31 15:49:15 UTC
 
-## install (npm install)
+## install (npm ci)
 
 Exit code: `0`
 
 ```
-npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
 npm warn deprecated @humanwhocodes/config-array@0.11.14: Use @eslint/config-array instead
 npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 npm warn deprecated glob@10.3.10: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 npm warn deprecated eslint@8.57.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
 
-added 392 packages, and audited 393 packages in 33s
+added 394 packages, and audited 395 packages in 20s
 
 158 packages are looking for funding
   run `npm fund` for details
