@@ -1,9 +1,9 @@
 # CI Report
 
-- Branch: `feature/linkup-mvp`
-- Commit: `3588a60841108bce284c5e6addebd027869e52d0`
-- Run: [`33410609060`](https://github.com/TJ-zip/linkup/actions/runs/33410609060)
-- Generated: 2026-08-31 15:49:15 UTC
+- Branch: `main`
+- Commit: `a9cea4c01b11e79128c4b87b7eeb29bf67126b3f`
+- Run: [`36257535904`](https://github.com/TJ-zip/linkup/actions/runs/36257535904)
+- Generated: 2026-09-26 17:01:34 UTC
 
 ## install (npm ci)
 
@@ -18,12 +18,12 @@ npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and cont
 npm warn deprecated glob@10.3.10: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 npm warn deprecated eslint@8.57.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
 
-added 394 packages, and audited 395 packages in 20s
+added 394 packages, and audited 395 packages in 21s
 
 158 packages are looking for funding
   run `npm fund` for details
 
-5 high severity vulnerabilities
+5 vulnerabilities (4 high, 1 critical)
 
 To address all issues (including breaking changes), run:
   npm audit fix --force
