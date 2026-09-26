@@ -1,0 +1,170 @@
+name: CI Report
+
+on:
+  push:
+    paths:
+      - 'ci-request.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-report-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  report:
+    name: Run requested scripts and publish logs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Detect lockfile
+        id: lock
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node (with cache)
+        if: steps.lock.outputs.has == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Node (no lockfile, no cache)
+        if: steps.lock.outputs.has == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run requested scripts and build report
+        id: run
+        run: |
+          set -uo pipefail
+          mkdir -p ci-reports .ci-logs
+          REPORT=ci-reports/latest.md
+          FAILED=0
+
+          {
+            echo "# CI Report"
+            echo
+            echo "- Branch: \`${GITHUB_REF_NAME}\`"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Run: [\`${GITHUB_RUN_ID}\`](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+            echo "- Generated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            echo
+          } > "$REPORT"
+
+          excerpt() {
+            local f="$1"
+            local total
+            total=$(wc -l < "$f")
+            if [ "$total" -le 220 ]; then
+              cat "$f"
+            else
+              head -n 60 "$f"
+              echo
+              echo "... [$((total - 220)) lines omitted] ..."
+              echo
+              tail -n 160 "$f"
+            fi
+          }
+
+          run_step() {
+            local label="$1"; shift
+            local logfile=".ci-logs/$(echo "$label" | tr -c 'A-Za-z0-9_-' '_').log"
+            echo "::group::$label"
+            set +e
+            "$@" > "$logfile" 2>&1
+            local code=$?
+            set -e
+            cat "$logfile"
+            echo "::endgroup::"
+            {
+              echo "## $label"
+              echo
+              echo "Exit code: \`$code\`"
+              echo
+              echo '```'
+              excerpt "$logfile"
+              echo '```'
+              echo
+            } >> "$REPORT"
+            if [ "$code" -ne 0 ]; then FAILED=1; fi
+            set +e
+          }
+
+          if [ -f package-lock.json ]; then
+            run_step "install (npm ci)" npm ci
+          else
+            run_step "install (npm install)" npm install
+          fi
+
+          if [ "$FAILED" -ne 0 ]; then
+            echo "Install failed; skipping requested scripts." >> "$REPORT"
+            echo "failed=1" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ ! -f ci-request.txt ]; then
+            echo "No ci-request.txt found; nothing requested." >> "$REPORT"
+            echo "failed=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          while IFS= read -r raw || [ -n "$raw" ]; do
+            line="$(echo "$raw" | tr -d '\r' | xargs || true)"
+            [ -z "$line" ] && continue
+            case "$line" in \#*) continue ;; esac
+
+            if ! echo "$line" | grep -Eq '^[A-Za-z0-9:_-]+$'; then
+              {
+                echo "## rejected: \`$line\`"
+                echo
+                echo "Rejected: not a valid npm script name (allowed pattern: ^[A-Za-z0-9:_-]+$)."
+                echo
+              } >> "$REPORT"
+              continue
+            fi
+
+            if ! SCRIPT_NAME="$line" node -e "const p=require('./package.json');process.exit(p.scripts&&Object.prototype.hasOwnProperty.call(p.scripts,process.env.SCRIPT_NAME)?0:1)"; then
+              {
+                echo "## rejected: \`$line\`"
+                echo
+                echo "Rejected: no such script declared in package.json."
+                echo
+              } >> "$REPORT"
+              continue
+            fi
+
+            run_step "npm run $line" npm run "$line"
+          done < ci-request.txt
+
+          echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
+
+      - name: Commit report and generated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f ci-reports/latest.md || true
+          if [ -f package-lock.json ]; then git add package-lock.json || true; fi
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "ci: publish report for ${GITHUB_SHA::7} [skip ci]"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+      - name: Fail job if any script failed
+        if: steps.run.outputs.failed == '1'
+        run: |
+          echo "One or more requested scripts failed. See ci-reports/latest.md"
+          exit 1

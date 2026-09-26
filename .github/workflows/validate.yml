@@ -1,0 +1,88 @@
+name: Validate
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'fix/**'
+      - 'refactor/**'
+      - 'docs/**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Install, lint, typecheck, build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect lockfile
+        id: lock
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "has=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node (with cache)
+        if: steps.lock.outputs.has == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Node (no lockfile, no cache)
+        if: steps.lock.outputs.has == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "Lockfile present -> npm ci"
+            npm ci
+          else
+            echo "No lockfile -> npm install"
+            npm install
+          fi
+
+      - name: Lint
+        run: |
+          if node -e "const p=require('./package.json');process.exit(p.scripts&&p.scripts.lint?0:1)"; then
+            npm run lint
+          else
+            echo "No lint script declared; skipped."
+          fi
+
+      - name: Typecheck
+        run: |
+          if node -e "const p=require('./package.json');process.exit(p.scripts&&p.scripts.typecheck?0:1)"; then
+            npm run typecheck
+          else
+            echo "No typecheck script declared; skipped."
+          fi
+
+      - name: Test
+        run: |
+          if node -e "const p=require('./package.json');process.exit(p.scripts&&p.scripts.test?0:1)"; then
+            npm test
+          else
+            echo "No test script declared; skipped."
+          fi
+
+      - name: Build (required)
+        run: |
+          node -e "const p=require('./package.json');if(!(p.scripts&&p.scripts.build)){console.error('FATAL: no build script declared in package.json');process.exit(1)}"
+          npm run build

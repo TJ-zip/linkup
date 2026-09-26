@@ -1,0 +1,5 @@
+# Scripts to run and report. One per line. Must already exist in package.json.
+# Confirming the regenerated lockfile is honoured by npm ci.
+lint
+typecheck
+build
